@@ -1,4 +1,5 @@
 import os
+import sqlite3
 from flask import Flask, request, redirect, session, render_template, send_from_directory
 from werkzeug.utils import secure_filename
 
@@ -17,7 +18,6 @@ try:
     USE_POSTGRES = True if DATABASE_URL else False
 except:
     USE_POSTGRES = False
-    import sqlite3
 
 def get_db():
     if USE_POSTGRES:
@@ -112,16 +112,10 @@ def upload_profile():
         file.save(image_path)
         conn = get_db()
         cur = conn.cursor()
-        try:
-            if USE_POSTGRES:
-                cur.execute("UPDATE shops SET profile_picture = %s WHERE id = %s", (image_path, session['user_id']))
-            else:
-                cur.execute("UPDATE shops SET profile_picture = ? WHERE id = ?", (image_path, session['user_id']))
-        except:
-            if USE_POSTGRES:
-                cur.execute("UPDATE shops SET profile_picture = %s WHERE id = %s", (image_path, session['user_id']))
-            else:
-                cur.execute("UPDATE shops SET profile_picture = ? WHERE id = ?", (image_path, session['user_id']))
+        if USE_POSTGRES:
+            cur.execute("UPDATE shops SET profile_picture = %s WHERE id = %s", (image_path, session['user_id']))
+        else:
+            cur.execute("UPDATE shops SET profile_picture = ? WHERE id = ?", (image_path, session['user_id']))
         conn.commit()
         conn.close()
         return redirect('/dashboard')
